@@ -173,7 +173,7 @@ class Network(object):
         # below is the delta of the last layer
         # Note: nablas are the partial derivatives of the cost function with respect to weights and biases
         if self.is_binary_classification:
-            delta = cost_derivative_cross_entropy(activations[-1], y) * sigmoid_prime(zs[-1])
+            delta = cost_derivative_cross_entropy(activations[-1], y)
         else:
             delta = cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
 
