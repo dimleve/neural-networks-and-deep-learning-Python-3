@@ -15,6 +15,7 @@ import random
 import numpy as np
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
+from sklearn.metrics import roc_auc_score
 
 
 def cost_derivative(output_activations, y):
@@ -23,9 +24,16 @@ def cost_derivative(output_activations, y):
     return output_activations - y
 
 
+def cost_derivative_cross_entropy(output_activations, y):
+    """Return the vector of partial derivatives \partial C_x /
+    \partial a for the output activations."""
+    # same derivative as quadratic function
+    return output_activations - y
+
+
 class Network(object):
 
-    def __init__(self, sizes):
+    def __init__(self, sizes, is_binary_classification=False):
         """The list ``sizes`` contains the number of neurons in the
         respective layers of the network.  For example, if the list
         was [2, 3, 1] then it would be a three-layer network, with the
@@ -38,6 +46,7 @@ class Network(object):
         ever used in computing the outputs from later layers."""
         self.num_layers = len(sizes)
         self.sizes = sizes
+        self.is_binary_classification = is_binary_classification
 
         # weights and biases here are lists on numpy arrays
         self.biases = [np.random.randn(y, 1) for y in sizes[1:]]
@@ -89,9 +98,14 @@ class Network(object):
                 # Below is the CORE LEARNING function
                 self.update_mini_batch(mini_batch, eta)
             if test_data:
-                acc, f1 = self.evaluate(test_data)
-                print("Epoch {} : test accuracy: {} test F1 (macro): {} / # of test samples: {}".
-                      format(j, acc, f1, n_test))
+                if self.is_binary_classification:
+                    acc, f1 = self.evaluate(test_data)
+                    print("Epoch {} : test accuracy: {} test AUC: {} / # of test samples: {}".
+                          format(j, acc, f1, n_test))
+                else:
+                    acc, f1 = self.evaluate(test_data)
+                    print("Epoch {} : test accuracy: {} test F1 (macro): {} / # of test samples: {}".
+                          format(j, acc, f1, n_test))
             else:
                 print("Epoch {} complete".format(j))
 
@@ -158,7 +172,11 @@ class Network(object):
         # biases
         # below is the delta of the last layer
         # Note: nablas are the partial derivatives of the cost function with respect to weights and biases
-        delta = cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
+        if self.is_binary_classification:
+            delta = cost_derivative_cross_entropy(activations[-1], y) * sigmoid_prime(zs[-1])
+        else:
+            delta = cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
+
         nabla_b[-1] = delta
 
         # weights
@@ -191,12 +209,19 @@ class Network(object):
         return sum(int(x == y) for (x, y) in test_results)
 
         '''
-        nn_test_scores = [(np.argmax(self.feedforward(x)))
-                          for (x, y) in test_data]
+        if self.is_binary_classification:
+            nn_test_scores = [(np.asscalar(self.feedforward(x)))
+                              for (x, y) in test_data]
+        else:
+            nn_test_scores = [(np.argmax(self.feedforward(x)))
+                              for (x, y) in test_data]
 
         y_true = [y for (x, y) in test_data]
 
-        return accuracy_score(y_true, nn_test_scores), f1_score(y_true, nn_test_scores, average='macro')
+        if self.is_binary_classification:
+            return roc_auc_score(y_true, nn_test_scores), roc_auc_score(y_true, nn_test_scores)
+        else:
+            return accuracy_score(y_true, nn_test_scores), f1_score(y_true, nn_test_scores, average='macro')
 
 
 # Miscellaneous functions
