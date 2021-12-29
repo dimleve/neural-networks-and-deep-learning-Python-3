@@ -3,9 +3,9 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import numpy as np
 
-data = pd.read_csv('./data_banknote_authentication.txt', header=None)
-# data = pd.read_csv('./sonar.all-data', header=None)
-# data = pd.read_csv('./ionosphere.data', header=None)
+data = pd.read_csv('./data/data_banknote_authentication.txt', header=None)
+data = pd.read_csv('./data/sonar.all-data', header=None)
+# data = pd.read_csv('./data/ionosphere.data', header=None)
 
 y = data.iloc[:, data.shape[1]-1]
 X = data.drop(data.shape[1]-1, axis=1)
