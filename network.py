@@ -210,9 +210,13 @@ class Network(object):
 
         '''
         if self.is_binary_classification:
+            # just get the sigmoid output "probability"
             nn_test_scores = [(np.asscalar(self.feedforward(x)))
                               for (x, y) in test_data]
         else:
+            # the below is like one vs all multiclass classification
+            # the sigmoids output "probabilities" in the [0, 1] range and we keep the maximum
+            # note that training targets are of the from [0, 0, 1, ...,, 0] for digit '2' for example
             nn_test_scores = [(np.argmax(self.feedforward(x)))
                               for (x, y) in test_data]
 
