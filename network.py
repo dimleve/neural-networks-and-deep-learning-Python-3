@@ -211,7 +211,7 @@ class Network(object):
         '''
         if self.is_binary_classification:
             # just get the sigmoid output "probability"
-            nn_test_scores = [(np.asscalar(self.feedforward(x)))
+            nn_test_scores = [(self.feedforward(x).item())
                               for (x, y) in test_data]
         else:
             # the below is like one vs all multiclass classification
